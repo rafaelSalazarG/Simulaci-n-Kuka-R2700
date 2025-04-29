@@ -1,0 +1,73 @@
+function R=robot()
+
+clc, clear, close all
+%En este script se definirá la matriz DH con la que se trabajará en el
+%proyecto del semestre
+%El robot seleccionado es un KUKA KR-120 R2700-2
+
+%Definimos la matriz DH con los parámetros correspondientes
+
+dh = [
+    0.000  645.000  330.000  pi/2   0.000;
+    0.000  0.000    1150     0.000  0.000;
+    0.000  0.000    115.000  pi/2   0.00;
+    0.000  1220     0.000    -pi/2  0.000;
+    0.000  0.000    0.000    pi/2   0.000;
+    0.000  215.0    0.000    0.000  0.000];
+
+
+%Instanciamos un objeto del tipo SerialLink y le llamamos R. Le pasamos
+%como primer parametro el nombre de nuestro robot
+R=SerialLink(dh,'name','KUKA KR-120 R2700-2');
+
+%------Definimos los limites de las articulaciones de nuestro robot----------
+
+R.qlim(1,1:2) = [-185, 185]*pi/180;
+R.qlim(2,1:2) = [5,140 ]*pi/180;
+R.qlim(3,1:2) = [-168, 120]*pi/180;
+R.qlim(4,1:2) = [-350, 350]*pi/180;
+R.qlim(5,1:2) = [-125, 125]*pi/180;
+R.qlim(6,1:2) = [-350, 350]*pi/180;
+
+%-----------------Definimos el offset, base y tool-----------------------
+
+%El método offset nos permite ingresar un valor de compensación para alguna
+%articulación en particular
+R.offset = [0 0 pi/2 0 0 0];
+
+
+%El metodo base nos permite trasladar o rotar el sistema de referencia de
+%la base (y por ende la base tambien)
+R.base=trotz(0);
+
+%El metodo tool nos permite trasladar y rotar el sistema de referencia del
+%extremo del actuador final
+%Consiste en un ATRIBUTO del objeto Seriallink, al cual le pasamos una
+%matriz de transformacion homogenea, que lleva el sistema de referencia del
+%ultimo eslabon, al extremo del efector final
+%Dado que el efector final de nuestro robot es una especie de pala que
+%sirve para retraer el liquido hidraulico denuevo hacia la base del robot,
+%configuramos una traslacion en x y z para posicionar el ultimo sistema de
+%referencia en el extremo de la pala
+%R.tool=transl(0,0,745.23)*transl(-255.22,0,0);
+
+
+%-------------Definimos la variable workspace-----------------------
+
+%Con esta variable definimos el espacio de ploteo de la forma
+%[-limX, +limX, -limY, +limY, -limZ, +limZ]
+%workspace=[-5000, 5000, -5000, 5000, 0, 5000];
+workspace=[-4000, 4000, -4000, 4000, -1000, 5000];
+%--------Paso de la variable workspace a la funcion de ploteo----------
+
+%R.plot(q,'scale',0.8) para plotear sin los stl
+R.plotopt3d = {'workspace',workspace};
+
+%Aclaraciones
+%1) El metodo plot3d no se ejecuta en este script porque la llamada lo
+%hacemos desde graficaRobot.m. Aca solo le pasamos a la funcion plot3d el
+%workspace correspondiente
+%2)Se hizo un cambio en la linea 215 de la funcion teach.m, se cambio el
+%metodo robot.plot a robot.animate
+
+end
